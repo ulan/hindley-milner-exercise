@@ -19,30 +19,25 @@ import qualified Expr
 
 type Inference a = StateT (VarIndex, Substitution) (ErrorT String Identity) a
 
-force :: VarIndex -> Type -> Inference ()
-force var typ = do
-    (index, subs) <- get
-    put (index, compose (substitution [(var, typ)]) subs)
+typeof :: Expr Typing -> Type
+typeof = gettype . annotation
+
+freshVar :: Inference Type
+freshVar = do
+    (index, substitution) <- get
+    let index' = index + VarIndex 1
+    put (index', substitution)
+    return $ Var index
+
+forceVarToType :: VarIndex -> Type -> Inference ()
+forceVarToType var typ = do
+    (index, substitution) <- get
+    put (index, compose (substitutionFromList [(var, typ)]) substitution)
 
 sync :: Type -> Inference Type
 sync t = do
-    (index, subs) <- get
-    return $ Type.apply subs t
-
-unify' :: Type -> Type -> Inference ()
-unify' Bool Bool = return ()
-unify' Num Num = return ()
-unify' (Var x) (Var y)
-    | x == y = return ()
-    | otherwise = force x (Var y)
-unify' (Var x) t
-    | t `contains` x = throwError $ "cannot unify " ++ show (Var x) ++ " with " ++ show t
-    | otherwise = force x t
-unify' t (Var x) = unify (Var x) t
-unify' (Arrow t1 t2) (Arrow s1 s2) = do
-    unify t1 s1
-    unify t2 s2
-unify' t s = throwError $ "cannot unify " ++ show t ++ " with " ++ show s
+    (index, substitution) <- get
+    return $ Type.apply substitution t
 
 unify :: Type -> Type -> Inference ()
 unify t s = do
@@ -50,13 +45,28 @@ unify t s = do
     s' <- sync s
     unify' t' s'
 
+unify' :: Type -> Type -> Inference ()
+unify' Bool Bool = return ()
+unify' Num Num = return ()
+unify' (Var x) (Var y)
+    | x == y = return ()
+    | otherwise = forceVarToType x (Var y)
+unify' (Var x) t
+    | t `contains` x = throwError $ "cannot unify " ++ show (Var x) ++ " with " ++ show t
+    | otherwise = forceVarToType x t
+unify' t (Var x) = unify (Var x) t
+unify' (Arrow t1 t2) (Arrow s1 s2) = do
+    unify t1 s1
+    unify t2 s2
+unify' t s = throwError $ "cannot unify " ++ show t ++ " with " ++ show s
+
 instantiate :: Schema -> Inference (Substitution, Type)
 instantiate schema = do
     let locals = bound schema
     (fresh, subs) <- get
     let fresh' = fresh + (VarIndex $ fromIntegral $ size locals)
     put (fresh', subs)
-    let subs = substitution $ zip (elems locals) (map Var [fresh..fresh'])
+    let subs = substitutionFromList $ zip (elems locals) (map Var [fresh..fresh'])
     return (subs, applyToLocals subs schema)
 
 generalize :: Context Schema -> Type -> Inference Schema
@@ -65,20 +75,6 @@ generalize context typ = do
     let sync = applyToFree subs
     let freevars = unions (map (free . sync) (values context))
     return $ polymorphic freevars typ
-
-fresh :: Inference Type
-fresh = do
-    (index, substitution) <- get
-    let index' = index + VarIndex 1
-    put (index', substitution)
-    return $ Var index
-
-
-typeof :: Expr Typing -> Type
-typeof expr = case annotation expr of
-    Simple typ -> typ
-    Instantiation _ typ -> typ
-    Generalization _ typ -> typ
 
 infer' :: Context Schema -> Expr a -> Inference (Expr Typing)
 infer' _ (Expr.Bool x _) =
@@ -91,19 +87,19 @@ infer' context (Expr.Var x _) =
                           return $ Expr.Var x (Instantiation subs typ)
         Nothing -> throwError $ show (Expr.Var x ()) ++ "is undefined"
 infer' context (Expr.Lam expr _) = do
-    t <- fresh
+    t <- freshVar
     expr' <- infer' (push (monomorphic t) context) expr
     return $ Expr.Lam expr' $ Simple $ Arrow t (typeof expr')
 infer' context (Expr.App a b _) = do
     fun <- infer' context a
-    s <- fresh
-    t <- fresh
+    s <- freshVar
+    t <- freshVar
     unify (typeof fun) (Arrow s t)
     arg <- infer' context b
     unify s (typeof arg)
     return $ Expr.App fun arg $ Simple t
 infer' context (Expr.Fix expr _) = do
-    t <- fresh
+    t <- freshVar
     expr' <- infer' (push (monomorphic t) context) expr
     unify t (typeof expr')
     return $ Expr.Fix expr' $ Simple t
@@ -130,4 +126,4 @@ infer'' context expr = do
     return $ fmap (applyTyping subs) expr'
 
 infer :: Context Schema -> Expr a -> Either String (Expr Typing)
-infer context expr = runIdentity $ runErrorT $ evalStateT (infer'' context expr) (0, substitution [])
+infer context expr = runIdentity $ runErrorT $ evalStateT (infer'' context expr) (0, substitutionFromList [])

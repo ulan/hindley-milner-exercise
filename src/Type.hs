@@ -17,7 +17,7 @@ module Type (Schema (..),
              keys,
              monomorphic,
              polymorphic,
-             substitution) where
+             substitutionFromList) where
 
 import Data.Set (Set, empty, singleton, union, difference, member, fromList)
 import Data.Maybe (fromMaybe)
@@ -46,8 +46,8 @@ gettype (Simple t) = t
 gettype (Instantiation _ t) = t
 gettype (Generalization _ t) = t
 
-substitution :: [(VarIndex, Type)] -> Substitution
-substitution = M.fromList
+substitutionFromList :: [(VarIndex, Type)] -> Substitution
+substitutionFromList = M.fromList
 
 mapping :: Substitution -> VarIndex -> Type
 mapping subs x = fromMaybe (Var x) (M.lookup x subs)
