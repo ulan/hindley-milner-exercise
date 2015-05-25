@@ -19,15 +19,15 @@ import qualified Expr
 compute :: String -> Either String (Expr (Maybe String, Typing), Expr ())
 compute str = do
     expr <- parse str
-    typed <- infer context (void expr) 
+    typed <- infer context (void expr)
     if not (check context typed)
         then Left "type inference failed"
         else return (Expr.zip expr typed, eval (void expr))
 
-main = do 
+main = do
     str <- getContents
     case compute str of
         Left err -> putStrLn err
         Right (typed, result) -> do
-            putStrLn (pretty typed) 
+            putStrLn (pretty typed)
             print result

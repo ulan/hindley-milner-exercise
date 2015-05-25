@@ -17,10 +17,7 @@ import Type
 import qualified Expr
 
 typeof :: Expr Typing -> Type
-typeof expr = case annotation expr of
-    Simple typ -> typ
-    Instantiation _ typ -> typ
-    Generalization _ typ -> typ
+typeof = gettype . annotation
 
 check :: Context Schema -> Expr Typing -> Bool
 check _ (Expr.Bool _ (Simple Bool)) = True

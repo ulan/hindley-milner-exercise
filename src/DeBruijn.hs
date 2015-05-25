@@ -32,14 +32,14 @@ debruijn' env depth (RawApp x y) = do
     return $ App x' y' Nothing
 debruijn' env depth (RawLam x y) = do
     y' <- debruijn' (M.insert x depth env) (depth + 1) y
-    return $ Lam y' (Just x) 
+    return $ Lam y' (Just x)
 debruijn' env depth (RawFix x y) = do
     y' <- debruijn' (M.insert x depth env) (depth + 1) y
-    return $ Fix y' (Just x) 
+    return $ Fix y' (Just x)
 debruijn' env depth (RawLet x y z) = do
     y' <- debruijn' env depth y
     z' <- debruijn' (M.insert x depth env) (depth + 1) z
-    return $ Let y' z' (Just x) 
+    return $ Let y' z' (Just x)
 
 parse :: String -> Either String (Expr (Maybe String))
 parse str = runIdentity $ runErrorT (parseExpr str >>= debruijn nameToIndex)
