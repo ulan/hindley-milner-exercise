@@ -1,10 +1,10 @@
 # Running and Testing
 
-`git clone https://github.com/ulan/hindley-milner-exercise.git`
-`cd hindley-milner-exercise`
-`cabal test`
-`cabal build`
-`./dist/build/hindley-milner-exercise/hindley-milner-exercise < your-program-source.txt`
+1. `git clone https://github.com/ulan/hindley-milner-exercise.git`
+2. `cd hindley-milner-exercise`
+3. `cabal test`
+4. `cabal build`
+5. `./dist/build/hindley-milner-exercise/hindley-milner-exercise < your-program-source.txt`
 
 # The language
 
@@ -20,9 +20,9 @@ A term of the language is one of:
 
 Builtins:
 
-cmp : Number -> Number -> Bool - comparison 
-add : Number -> Number -> Number - addition.
-sub : Number -> Number -> Number - subtraction.
-mul : Number -> Number -> Number - multiplication.
-div : Number -> Number -> Number - division.
-if : forall a . Bool -> a -> a -> a - conditional.
+- cmp : Number -> Number -> Bool - comparison.
+- add : Number -> Number -> Number - addition.
+- sub : Number -> Number -> Number - subtraction.
+- mul : Number -> Number -> Number - multiplication.
+- div : Number -> Number -> Number - division.
+- if : forall a . Bool -> a -> a -> a - conditional.
