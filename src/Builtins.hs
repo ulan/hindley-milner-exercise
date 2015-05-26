@@ -23,6 +23,7 @@ builtins = [
     Builtin "add" (Arity 2) (monomorphic $ Arrow Num (Arrow Num Num)) add,
     Builtin "sub" (Arity 2) (monomorphic $ Arrow Num (Arrow Num Num)) sub,
     Builtin "mul" (Arity 2) (monomorphic $ Arrow Num (Arrow Num Num)) mul,
+    Builtin "div" (Arity 2) (monomorphic $ Arrow Num (Arrow Num Num)) div',
     Builtin "cmp" (Arity 2) (monomorphic $ Arrow Num (Arrow Num Bool)) cmp,
     Builtin "if"  (Arity 1) (Schema forall_a $ Arrow Bool (Arrow a (Arrow a a))) if']
   where
@@ -32,6 +33,7 @@ builtins = [
     sub [Expr.Num a (), Expr.Num b ()] = Expr.Num (a - b) ()
     mul [Expr.Num a (), Expr.Num b ()] = Expr.Num (a * b) ()
     cmp [Expr.Num a (), Expr.Num b ()] = Expr.Bool (a == b) ()
+    div' [Expr.Num a (), Expr.Num b ()] = Expr.Num (a `div` b) ()
     if' [Expr.Bool True ()]  = Expr.Lam (Expr.Lam (Expr.Var (Expr.VarIndex 1) ()) ()) ()
     if' [Expr.Bool False ()] = Expr.Lam (Expr.Lam (Expr.Var (Expr.VarIndex 0) ()) ()) ()
 

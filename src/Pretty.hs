@@ -27,11 +27,11 @@ pretty expr = snd $ runIdentity $ runWriterT (pretty' names expr)
     tell " ("
     pretty' vars y
     tell ")"
-  pretty' vars (Lam y (Just name, _)) = do
+  pretty' vars (Lam y (Just name, Type.Simple (Type.Arrow t _))) = do
     tell "\\"
     tell name
     tell " :: "
-    tell ((prettyType . Type.gettype . snd . annotation) y)
+    tell (prettyType t)
     tell " . "
     pretty' (name:vars) y
   pretty' vars (Fix y (Just name, Type.Simple t)) = do

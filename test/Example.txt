@@ -1,0 +1,7 @@
+input> let mod = (\x . \m . (sub x (mul (div x m) m))) in (fix gcd . \ x . \ y . if (cmp x 0) y (gcd (mod y x) x)) 49 35
+output> let mod :: forall αβζ => (Number) -> (Number) -> Number = (\x :: Number . \m :: Number . ((sub) (x)) (((mul) (((div) (x)) (m))) (m))) in ((fix gcd :: (Number) -> (Number) -> Number.\x :: Number . \y :: Number . (((if) (((cmp) (x)) (0))) (y)) (((gcd) (((mod) (y)) (x))) (x))) (49)) (35)
+output> Num 7 ()
+
+input> (fix fact . \x . if (cmp x 1) 1 (mul x (fact (sub x 1)))) 10
+output> (fix fact :: (Number) -> Number.\x :: Number . (((if) (((cmp) (x)) (1))) (1)) (((mul) (x)) ((fact) (((sub) (x)) (1))))) (10)
+output> Num 3628800 ()
